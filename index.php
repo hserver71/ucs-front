@@ -1,22 +1,51 @@
 <?php
+$host = $_SERVER['HTTP_HOST'];              // aaa.xxx.com
+$server_name = $_SERVER['SERVER_NAME'];     // *.xxx.com
+$redirect_url = '';
+$sub_domain = explode('.', $host)[0];
 
-function getUCSData($host){
-    $data = file_get_contents("http://172.110.220.100:8000/api/getUCSData");
-    $data = json_decode($data, true);
-    return $data;
+function getUCSData(){
+    $backend_url = "http://172.110.220.100:8000/api/getUCSData";
+    try {
+        $last_updated = apcu_fetch('last_updated');
+        if($last_updated == null || time() > $last_updated + 30){
+            $data = file_get_contents($backend_url);
+            $data = json_decode($data, true);
+            apcu_store('last_updated', time());
+            apcu_store('data', $data);
+        }
+    } catch (\Throwable $th) {
+        echo "Error: " . $th;
+    }
+}
+
+getUCSData();
+
+$data = array_values(array_filter(apcu_fetch('data')['data'], function($item) use ($server_name) {
+    return strpos($item['domain'], substr($server_name, 2)) !== false;
+}));
+$allocated_lines = [];
+if(count($data) > 0){
+    $allocated_lines = $data[0]['allocated_lines'];
+}
+$cf_domain = array_values(array_filter($allocated_lines, function($item) use ($sub_domain, $master_domain){
+    return $item['linename']  == $sub_domain;
+}));
+
+if($data == null){
+    $redirect_url = 'https://www.google.com';
+}else if(count($cf_domain) > 0) {
+    $redirect_url = "http://" . ip2long($data[0]['ip']) . '.' . $cf_domain[0]['domain'] . $_SERVER['REQUEST_URI'];
+}else{
+    $redirect_url = "http://" . $data[0]['ip'] . '.' . $_SERVER['REQUEST_URI'];
 }
 
 
-echo "UCS Front Distrobutor!";
-$host = $_SERVER['HTTP_HOST'];
-echo "Host: $host";
-
-if(time() % 30 == 0){
-    echo "Getting UCS Data...";
-    $data = getUCSData($host);
-    print_r($data);
+header('Content-Type: text/html; charset=UTF-8');
+header('Access-Control-Allow-Origin: *'); 
+if( isset( $_SERVER['SERVER_ADDR'] ) ){
+    header('special_header: '.$_SERVER['SERVER_ADDR']); 
 }
 
-
-
-
+$redirect_url = utf8_decode($redirect_url);
+header("Location: $redirect_url", true, 302);
