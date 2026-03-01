@@ -93,7 +93,7 @@ $cf_domain = array_values(array_filter($allocated_lines, function($item) use ($s
 
 
 if(!is_empty($cf_domain)) {
-    $redirect_url = "http://" . strval($line_id) . '.' . $cf_domain[0]['domain'] . $_SERVER['REQUEST_URI'];
+    $redirect_url = "http://" . strval(ip2long($data[0]['ip'])) . '.' . $cf_domain[0]['domain'] . $_SERVER['REQUEST_URI'];
 }else{
     $redirect_url = "http://" . $data[0]['ip'] . $_SERVER['REQUEST_URI'];
 }
