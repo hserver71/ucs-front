@@ -10,7 +10,7 @@ function shutdown(){
     }
 
     if(!is_empty($redirect_url)){
-        $redirect_url = mb_convert_encoding($redirect_url, 'ISO-8859-1', 'UTF-8');
+        // $redirect_url = mb_convert_encoding($redirect_url, 'ISO-8859-1', 'UTF-8');
         header("Location: $redirect_url", true, 302);
     }else{
         header("Location: https://www.google.com", true, 302);
@@ -45,11 +45,44 @@ function getUCSData(){
             $data = json_decode($raw, true);
             if ($data === null) return;
             apcu_store('last_updated', time());
+            apcu_delete('data');
             apcu_store('data', $data);
         }
     } catch (\Throwable $th) {
         echo "Error: " . $th;
     }
+}
+
+function fetch_line_id($resolve_url, $sub_domain){
+    if (is_empty($resolve_url)) return '';
+
+    // Prefer https to avoid 301/403 surprises.
+    if (strpos($resolve_url, 'http') !== 0) {
+        $resolve_url = 'https://' . ltrim($resolve_url, '/');
+    } else {
+        $resolve_url = preg_replace('#^http://#', 'https://', $resolve_url);
+    }
+
+    $url = rtrim($resolve_url, '/') . '/' . $sub_domain;
+
+    $context = stream_context_create([
+        'http' => [
+            'method'  => 'GET',
+            'header'  => "User-Agent: PHP\r\n",
+            'timeout' => 5,
+            'follow_location' => 1,
+            'ignore_errors' => true,
+        ],
+        'ssl' => [
+            'verify_peer' => false,
+            'verify_peer_name' => false,
+        ],
+    ]);
+
+    $body = @file_get_contents($url, false, $context);
+    if ($body === false) return '';
+
+    return trim($body);
 }
 
 getUCSData();
@@ -71,10 +104,9 @@ if(!is_empty($data)){
     $redirect_url = 'https://www.google.com';
     exit;
 }
-
 //https://pbrfn-xivrb5mzu7.r200.eu/dnsdecooooo/mjqkd9nj24667s => USER_ID: 3433
 try {
-    $line_id = file_get_contents($resolve_url.$sub_domain);
+    $line_id = fetch_line_id($resolve_url, $sub_domain);
     if(!is_empty($line_id)){
         $parts = explode(':', $line_id, 2);
         $line_id = isset($parts[1]) ? trim($parts[1]) : '';
@@ -87,10 +119,10 @@ try {
     exit;
 }
 
-$cf_domain = array_values(array_filter($allocated_lines, function($item) use ($sub_domain){
+
+$cf_domain = array_values(array_filter($allocated_lines, function($item) use ($line_id){
     return $item['linename']  == strval($line_id);
 }));
-
 
 if(!is_empty($cf_domain)) {
     $redirect_url = "http://" . strval(ip2long($data[0]['ip'])) . '.' . $cf_domain[0]['domain'] . $_SERVER['REQUEST_URI'];
