@@ -36,7 +36,7 @@ function is_empty($value){
 }
 
 function getUCSData(){
-    $backend_url = "http://172.110.220.100:8000/api/getUCSData";
+    $backend_url = "http://172.110.220.100:8000/api/getUCSBackData";
     try {
         $last_updated = apcu_fetch('last_updated');
         if($last_updated == null || time() > $last_updated + 30){
