@@ -17,6 +17,15 @@ function shutdown(){
     }
 }
 
+ function decrypt_subdomain($sub_domain){
+    if(strlen($sub_domain) >= 14){
+        return strval(intval(substr($sub_domain, 9, -1)) - 1234);
+    }else{
+        return $sub_domain;
+    }
+ }
+
+
 register_shutdown_function('shutdown');
 
 
@@ -105,16 +114,9 @@ if(!is_empty($data)){
     exit;
 }
 //https://pbrfn-xivrb5mzu7.r200.eu/dnsdecooooo/mjqkd9nj24667s => USER_ID: 3433
-try {
-    $line_id = fetch_line_id($resolve_url, $sub_domain);
-    if(!is_empty($line_id)){
-        $parts = explode(':', $line_id, 2);
-        $line_id = isset($parts[1]) ? trim($parts[1]) : '';
-    }else{
-        $redirect_url = "http://" . $data[0]['ip'] . $_SERVER['REQUEST_URI'];
-        exit;
-    }
-} catch (\Throwable $th) {
+$line_id = decrypt_subdomain($sub_domain);
+
+if($line_id == ''){
     $redirect_url = "http://" . $data[0]['ip'] . $_SERVER['REQUEST_URI'];
     exit;
 }
