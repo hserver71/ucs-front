@@ -117,7 +117,7 @@ if(!is_empty($data)){
 $line_id = decrypt_subdomain($sub_domain);
 
 if($line_id == ''){
-    $redirect_url = "http://" . $data[0]['ip'] . $_SERVER['REQUEST_URI'];
+    $redirect_url = "http://" . $data[0]['original_ip'] . $_SERVER['REQUEST_URI'];
     exit;
 }
 
@@ -127,7 +127,7 @@ $cf_domain = array_values(array_filter($allocated_lines, function($item) use ($l
 }));
 
 if(!is_empty($cf_domain)) {
-    $redirect_url = "http://" . strval(ip2long($data[0]['ip'])) . '.' . $cf_domain[0]['domain'] . $_SERVER['REQUEST_URI'];
+    $redirect_url = "http://" . strval(ip2long($data[0]['original_ip'])) . '.' . $cf_domain[0]['domain'] . $_SERVER['REQUEST_URI'];
 }else{
-    $redirect_url = "http://" . $data[0]['ip'] . $_SERVER['REQUEST_URI'];
+    $redirect_url = "http://" . $data[0]['original_ip'] . $_SERVER['REQUEST_URI'];
 }
