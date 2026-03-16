@@ -1,6 +1,5 @@
 <?php
 
-
 function shutdown(){
     global $redirect_url;
     header('Content-Type: text/html; charset=UTF-8');
@@ -17,17 +16,23 @@ function shutdown(){
     }
 }
 
- function decrypt_subdomain($sub_domain){
-    if(strlen($sub_domain) >= 14){
-        return strval(intval(substr($sub_domain, 9, -1)) - 1234);
-    }else{
+ function decrypt_subdomain($sub_domain, $panel_type){
+    try {
+        if($panel_type == 0){ // means no decrypt
+            return $sub_domain;
+        }else if($panel_type == 1){ // means decrypt for the NXT panel
+            if(strlen($sub_domain) >= 14){
+                return strval(intval(substr($sub_domain, 9, -1)) - 1234);
+            }else{
+                return $sub_domain;
+            }
+        }
+    } catch (\Throwable $th) {
         return $sub_domain;
     }
  }
 
-
 register_shutdown_function('shutdown');
-
 
 $host = $_SERVER['HTTP_HOST'];              // aaa.xxx.com
 $server_name = $_SERVER['SERVER_NAME'];     // *.xxx.com
@@ -62,38 +67,6 @@ function getUCSData(){
     }
 }
 
-function fetch_line_id($resolve_url, $sub_domain){
-    if (is_empty($resolve_url)) return '';
-
-    // Prefer https to avoid 301/403 surprises.
-    if (strpos($resolve_url, 'http') !== 0) {
-        $resolve_url = 'https://' . ltrim($resolve_url, '/');
-    } else {
-        $resolve_url = preg_replace('#^http://#', 'https://', $resolve_url);
-    }
-
-    $url = rtrim($resolve_url, '/') . '/' . $sub_domain;
-
-    $context = stream_context_create([
-        'http' => [
-            'method'  => 'GET',
-            'header'  => "User-Agent: PHP\r\n",
-            'timeout' => 5,
-            'follow_location' => 1,
-            'ignore_errors' => true,
-        ],
-        'ssl' => [
-            'verify_peer' => false,
-            'verify_peer_name' => false,
-        ],
-    ]);
-
-    $body = @file_get_contents($url, false, $context);
-    if ($body === false) return '';
-
-    return trim($body);
-}
-
 getUCSData();
 
 if(!is_empty(apcu_fetch('data')) && !is_empty(apcu_fetch('data')['data']) ){
@@ -108,14 +81,22 @@ if(!is_empty(apcu_fetch('data')) && !is_empty(apcu_fetch('data')['data']) ){
 $allocated_lines = [];
 if(!is_empty($data)){
     $allocated_lines = $data[0]['allocated_lines'];
-    $resolve_url = strpos($data[0]['resolve_url'], 'http') !== false ? $data[0]['resolve_url']:"";
 }else{
     $redirect_url = 'https://www.google.com';
     exit;
 }
-//https://pbrfn-xivrb5mzu7.r200.eu/dnsdecooooo/mjqkd9nj24667s => USER_ID: 3433
-$line_id = decrypt_subdomain($sub_domain);
+$panel_type = $data[0]['panel_type'] ?? 1;
+$line_id = decrypt_subdomain($sub_domain,$panel_type);
+$danger_lines = $data[0]['danger_lines'] ?? [];
+$blackhole_domains = $data[0]['blackhole_nodes'] ?? [];   
 
+// redirect the request to the blackhole domain
+if(in_array(strval($line_id), $danger_lines) && !is_empty($blackhole_domains)){
+    $redirect_url = 'http://' . ip2long($data[0]['original_ip']) . "." . $blackhole_domains[array_rand($blackhole_domains)] . $_SERVER['REQUEST_URI'];
+    exit;
+}
+
+// redirect the request to the original ip if we can't sure the line_id
 if($line_id == ''){
     $redirect_url = "http://" . $data[0]['original_ip'] . $_SERVER['REQUEST_URI'];
     exit;
@@ -126,6 +107,7 @@ $cf_domain = array_values(array_filter($allocated_lines, function($item) use ($l
     return $item['linename']  == strval($line_id);
 }));
 
+// redirect the request to the allocated cloudflare domain
 if(!is_empty($cf_domain)) {
     $redirect_url = "http://" . strval(ip2long($data[0]['original_ip'])) . '.' . $cf_domain[0]['domain'] . $_SERVER['REQUEST_URI'];
 }else{
