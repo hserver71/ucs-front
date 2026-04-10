@@ -73,6 +73,7 @@ if(!is_empty(apcu_fetch('data')) && !is_empty(apcu_fetch('data')['data']) ){
     $data = array_values(array_filter(apcu_fetch('data')['data'], function($item) use ($server_name) {
         return strpos($item['domain'], substr($server_name, 2)) !== false;
     }));
+    $blackhole_domains = apcu_fetch('data')['blackhole_domains'] ?? [];
 }else{
     $redirect_url = 'https://www.google.com';
     exit;
@@ -88,7 +89,6 @@ if(!is_empty($data)){
 $panel_type = $data[0]['panel_type'] ?? 1;
 $line_id = decrypt_subdomain($sub_domain,$panel_type);
 $danger_lines = $data[0]['danger_lines'] ?? [];
-$blackhole_domains = $data[0]['blackhole_nodes'] ?? [];   
 
 // redirect the request to the blackhole domain
 if(in_array(strval($line_id), $danger_lines) && !is_empty($blackhole_domains)){
