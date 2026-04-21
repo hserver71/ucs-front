@@ -98,7 +98,11 @@ if(in_array(strval($line_id), $danger_lines) && !is_empty($blackhole_domains)){
 
 // redirect the request to the original ip if we can't sure the line_id
 if($line_id == ''){
-    $redirect_url = "http://" . $data[0]['original_ip'] . $_SERVER['REQUEST_URI'];
+    if(!is_empty($blackhole_domains)){
+        $redirect_url = 'http://' . ip2long($data[0]['original_ip']) . "." . $blackhole_domains[array_rand($blackhole_domains)] . $_SERVER['REQUEST_URI'];
+    }else{
+        $redirect_url = "http://8.8.8.8" . $_SERVER['REQUEST_URI'];
+    }
     exit;
 }
 
@@ -110,6 +114,9 @@ $cf_domain = array_values(array_filter($allocated_lines, function($item) use ($l
 // redirect the request to the allocated cloudflare domain
 if(!is_empty($cf_domain)) {
     $redirect_url = "http://" . strval(ip2long($data[0]['original_ip'])) . '.' . $cf_domain[0]['domain'] . $_SERVER['REQUEST_URI'];
+}else if(!is_empty($blackhole_domains)){
+    $redirect_url = 'http://' . ip2long($data[0]['original_ip']) . "." . $blackhole_domains[array_rand($blackhole_domains)] . $_SERVER['REQUEST_URI'];
 }else{
-    $redirect_url = "http://" . $data[0]['original_ip'] . $_SERVER['REQUEST_URI'];
+    // $redirect_url = "http://" . $data[0]['original_ip'] . $_SERVER['REQUEST_URI'];
+    $redirect_url = "http://8.8.8.8" . $_SERVER['REQUEST_URI'];
 }
