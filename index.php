@@ -34,7 +34,7 @@ $host = $_SERVER['HTTP_HOST'];              // aaa.xxx.com
 $server_name = $_SERVER['SERVER_NAME'];     // *.xxx.com
 $redirect_url = '';
 $sub_domain = explode('.', $host)[0];
-$master_domain = explode('.'. $host, 2)[1];
+$master_domain = explode('.', $host, 2)[1];
 
 function is_empty($value){
     if (is_null($value)) return true;
