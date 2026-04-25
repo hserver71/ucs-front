@@ -46,7 +46,7 @@ function is_empty($value){
     return empty($value);
 }
 
-if(!is_empty(apcu_fetch('data')) && !is_empty(apcu_fetch('data')['data']) && !is_empty(apcu_fetch('meta_data'))){
+if(!is_empty(apcu_fetch('data')) && !is_empty(apcu_fetch('meta_data'))){
     $meta_data = apcu_fetch('meta_data');
     
     if(array_key_exists($master_domain, $meta_data)){
