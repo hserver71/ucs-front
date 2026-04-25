@@ -12,7 +12,7 @@ if($action == "start"){
     }
 
     // fetch the data
-    $backend_url = "http://unblocking-central-system.com/api/getUCSBackData";
+    $backend_url = "http://unblocking-central-system.com/api/getAllocatedPairs";
     try {
         $raw = file_get_contents($backend_url);
         if ($raw === false) return;
@@ -21,6 +21,18 @@ if($action == "start"){
         apcu_store('last_updated', time());
         apcu_delete('data');
         apcu_store('data', $data);
+
+        $meta_data = [];
+
+        foreach($data as $client_id => $client_data){
+            foreach(array_keys($client_data['lb_domains']) as $domain){
+                $meta_data[$domain] = $client_id;
+            }
+        }
+        if(count($meta_data) > 0){
+            apcu_delete('meta_data');
+            apcu_store('meta_data', $meta_data);
+        }
     } catch (\Throwable $th) {
         echo "Error: " . $th;
     }

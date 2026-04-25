@@ -16,19 +16,15 @@ function shutdown(){
     }
 }
 
- function decrypt_subdomain($sub_domain, $panel_type){
+ function decrypt_subdomain($sub_domain){
     try {
-        if($panel_type == 0){ // means no decrypt
-            return $sub_domain;
-        }else if($panel_type == 1){ // means decrypt for the NXT panel
-            if(strlen($sub_domain) >= 14){
-                return strval(intval(substr($sub_domain, 9, -1)) - 1234);
-            }else{
-                return $sub_domain;
-            }
+        if(strlen($sub_domain) >= 14){
+            return strval(intval(substr($sub_domain, 9, -1)) - 1234);
+        }else{
+            return "stranger";
         }
     } catch (\Throwable $th) {
-        return $sub_domain;
+        return "stranger";
     }
  }
 
@@ -38,6 +34,7 @@ $host = $_SERVER['HTTP_HOST'];              // aaa.xxx.com
 $server_name = $_SERVER['SERVER_NAME'];     // *.xxx.com
 $redirect_url = '';
 $sub_domain = explode('.', $host)[0];
+$master_domain = explode('.'. $host, 2)[1];
 
 function is_empty($value){
     if (is_null($value)) return true;
@@ -49,74 +46,28 @@ function is_empty($value){
     return empty($value);
 }
 
-function getUCSData(){
-    $backend_url = "http://172.110.220.100:8000/api/getUCSBackData";
-    try {
-        $last_updated = apcu_fetch('last_updated');
-        if($last_updated == null || time() > $last_updated + 30){
-            $raw = file_get_contents($backend_url);
-            if ($raw === false) return;
-            $data = json_decode($raw, true);
-            if ($data === null) return;
-            apcu_store('last_updated', time());
-            apcu_delete('data');
-            apcu_store('data', $data);
-        }
-    } catch (\Throwable $th) {
-        echo "Error: " . $th;
-    }
-}
-
-getUCSData();
-
-if(!is_empty(apcu_fetch('data')) && !is_empty(apcu_fetch('data')['data']) ){
-    $data = array_values(array_filter(apcu_fetch('data')['data'], function($item) use ($server_name) {
-        return strpos($item['domain'], substr($server_name, 2)) !== false;
-    }));
-    $blackhole_domains = apcu_fetch('data')['blackhole_domains'] ?? [];
-}else{
-    $redirect_url = 'https://www.google.com';
-    exit;
-}
-
-$allocated_lines = [];
-if(!is_empty($data)){
-    $allocated_lines = $data[0]['allocated_lines'];
-}else{
-    $redirect_url = 'https://www.google.com';
-    exit;
-}
-$panel_type = $data[0]['panel_type'] ?? 1;
-$line_id = decrypt_subdomain($sub_domain,$panel_type);
-$danger_lines = $data[0]['danger_lines'] ?? [];
-
-// redirect the request to the blackhole domain
-if(in_array(strval($line_id), $danger_lines) && !is_empty($blackhole_domains)){
-    $redirect_url = 'http://' . ip2long($data[0]['original_ip']) . "." . $blackhole_domains[array_rand($blackhole_domains)] . $_SERVER['REQUEST_URI'];
-    exit;
-}
-
-// redirect the request to the original ip if we can't sure the line_id
-if($line_id == ''){
-    if(!is_empty($blackhole_domains)){
-        $redirect_url = 'http://' . ip2long($data[0]['original_ip']) . "." . $blackhole_domains[array_rand($blackhole_domains)] . $_SERVER['REQUEST_URI'];
+if(!is_empty(apcu_fetch('data')) && !is_empty(apcu_fetch('data')['data']) && !is_empty(apcu_fetch('meta_data'))){
+    $meta_data = apcu_fetch('meta_data');
+    
+    if(array_key_exists($master_domain, $meta_data)){
+        $client_id = $meta_data[$master_domain];
     }else{
-        $redirect_url = "http://8.8.8.8" . $_SERVER['REQUEST_URI'];
+        $redirect_url = 'https://www.google.com';
+        exit;
     }
-    exit;
-}
 
+    $client_data = apcu_fetch('data')[$client_id];
+    $line_username = decrypt_subdomain($sub_domain);
 
-$cf_domain = array_values(array_filter($allocated_lines, function($item) use ($line_id){
-    return $item['linename']  == strval($line_id);
-}));
+    $pair_domain = $client_data['pairs'][$line_username];
+    if(is_empty($pair_domain)){
+        $redirect_url = 'https://www.google.com';
+        exit;
+    }else{
+        $redirect_url = 'http://' . ip2long($client_data['lb_domains'][$master_domain]) . "." . $pair_domain . $_SERVER['REQUEST_URI'];
+    }
 
-// redirect the request to the allocated cloudflare domain
-if(!is_empty($cf_domain)) {
-    $redirect_url = "http://" . strval(ip2long($data[0]['original_ip'])) . '.' . $cf_domain[0]['domain'] . $_SERVER['REQUEST_URI'];
-}else if(!is_empty($blackhole_domains)){
-    $redirect_url = 'http://' . ip2long($data[0]['original_ip']) . "." . $blackhole_domains[array_rand($blackhole_domains)] . $_SERVER['REQUEST_URI'];
 }else{
-    // $redirect_url = "http://" . $data[0]['original_ip'] . $_SERVER['REQUEST_URI'];
-    $redirect_url = "http://8.8.8.8" . $_SERVER['REQUEST_URI'];
+    $redirect_url = 'https://www.google.com';
+    exit;
 }
