@@ -38,12 +38,14 @@ if($action == "start"){
     }
 }else if($action == "show"){
     $updated_time = apcu_fetch('last_updated');
-    echo "Updated time: " . date('Y-m-d H:i:s', $updated_time) . "\n";
+    echo "Updated time: " . date('Y-m-d H:i:s', $updated_time) . "\n\n";
+    echo "Meta data: " . json_encode(apcu_fetch('meta_data')) . "\n\n";
     echo "Data: " . json_encode(apcu_fetch('data')) . "\n";
 }else if($action == "clear"){
     apcu_delete('data');
+    apcu_delete('meta_data');
     apcu_delete('last_updated');
-    echo "Data cleared";
+    echo "Cache cleared successfully!";
 }else{
     echo "Invalid action";
 }
