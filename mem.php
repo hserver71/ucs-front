@@ -14,7 +14,7 @@ if($action == "start"){
         $backend_url = "http://172.110.220.100:8000/api/getUCSBackData";
         try {
             $last_updated = apcu_fetch('last_updated');
-            if($last_updated == null || time() > $last_updated + 30){
+            if($last_updated == null || time() > $last_updated + 60){
                 $raw = file_get_contents($backend_url);
                 if ($raw === false) return;
                 $data = json_decode($raw, true);
@@ -30,7 +30,9 @@ if($action == "start"){
     
     getUCSData();
 }else if($action == "show"){
-    echo json_encode(apcu_fetch('data'));
+    $updated_time = apcu_fetch('last_updated');
+    echo "Updated time: " . date('Y-m-d H:i:s', $updated_time) . "\n";
+    echo "Data: " . json_encode(apcu_fetch('data')) . "\n";
 }else if($action == "clear"){
     apcu_delete('data');
     apcu_delete('last_updated');
