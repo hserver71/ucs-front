@@ -1,5 +1,5 @@
 <?php
-
+$country_code = strtoupper($_SERVER['GEOIP_COUNTRY_CODE'] ?? "fallback");
 function shutdown(){
     global $redirect_url;
     header('Content-Type: text/html; charset=UTF-8');
@@ -58,15 +58,22 @@ if(!is_empty(apcu_fetch('data')) && !is_empty(apcu_fetch('meta_data'))){
 
     $client_data = apcu_fetch('data')[$client_id];
     $line_username = decrypt_subdomain($sub_domain);
+    $mask_domains = apcu_fetch('mask_domains');
+
 
     $pair_domain = $client_data['pairs'][$line_username];
     if(is_empty($pair_domain)){
-        $redirect_url = 'https://www.google.com';
-        exit;
-    }else{
-        $redirect_url = 'http://' . ip2long($client_data['lb_domains'][$master_domain]) . "." . $pair_domain . $_SERVER['REQUEST_URI'];
+        if(array_key_exists($country_code, $mask_domains)){
+            $pair_domain = $mask_domains[$country_code][array_rand($mask_domains[$country_code])];
+        }else if(array_key_exists('fallback', $mask_domains)){
+            $pair_domain = $mask_domains['fallback'][array_rand($mask_domains['fallback'])];
+        }else{
+            $redirect_url = 'https://www.google.com';
+            exit;
+        }
     }
 
+    $redirect_url = 'http://' . ip2long($client_data['lb_domains'][$master_domain]) . "." . $pair_domain . $_SERVER['REQUEST_URI'];
 }else{
     $redirect_url = 'https://www.google.com';
     exit;
