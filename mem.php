@@ -20,7 +20,8 @@ if($action == "start"){
         if ($data === null) return;
         apcu_store('last_updated', time());
         apcu_delete('data');
-        apcu_store('data', $data);
+        apcu_store('data', $data['pairs']);
+        apcu_store('mask_domains', $data['mask_domains']);
 
         $meta_data = [];
 
