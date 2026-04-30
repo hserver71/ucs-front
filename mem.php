@@ -25,7 +25,7 @@ if($action == "start"){
 
         $meta_data = [];
 
-        foreach($data as $client_id => $client_data){
+        foreach($data['pairs'] as $client_id => $client_data){
             foreach(array_keys($client_data['lb_domains']) as $domain){
                 $meta_data[$domain] = $client_id;
             }

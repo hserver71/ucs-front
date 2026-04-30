@@ -1,5 +1,5 @@
 <?php
-$country_code = strtoupper($_SERVER['GEOIP_COUNTRY_CODE'] ?? "fallback");
+$country_code = strtolower($_SERVER['GEOIP_COUNTRY_CODE'] ?? "fallback");
 function shutdown(){
     global $redirect_url;
     header('Content-Type: text/html; charset=UTF-8');
