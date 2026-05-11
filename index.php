@@ -21,7 +21,7 @@ function shutdown(){
         if(strlen($sub_domain) >= 14){
             return strval(intval(substr($sub_domain, 9, -1)) - 1234);
         }else{
-            return "stranger";
+            return $sub_domain;
         }
     } catch (\Throwable $th) {
         return "stranger";
@@ -72,8 +72,8 @@ if(!is_empty(apcu_fetch('data')) && !is_empty(apcu_fetch('meta_data'))){
             exit;
         }
     }
-
-    $redirect_url = 'http://' . ip2long($client_data['lb_domains'][$master_domain]) . "." . $pair_domain . $_SERVER['REQUEST_URI'];
+    // xxxxxxxxx1235x.ip2long(lb_ip).cf1.com
+    $redirect_url = 'http://' . $sub_domain . '.' .  ip2long($client_data['lb_domains'][$master_domain]) . "." . $pair_domain . $_SERVER['REQUEST_URI'];
 }else{
     $redirect_url = 'https://www.google.com';
     exit;
