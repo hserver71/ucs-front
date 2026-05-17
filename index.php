@@ -9,7 +9,7 @@ function shutdown(){
     }
 
     if(!is_empty($redirect_url)){
-        // $redirect_url = mb_convert_encoding($redirect_url, 'ISO-8859-1', 'UTF-8');
+        $redirect_url = utf8_decode($redirect_url);
         header("Location: $redirect_url", true, 302);
     }else{
         header("Location: https://www.google.com", true, 302);
