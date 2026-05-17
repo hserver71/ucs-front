@@ -31,6 +31,7 @@ function shutdown(){
 register_shutdown_function('shutdown');
 
 $host = $_SERVER['HTTP_HOST'];              // aaa.xxx.com
+$host = preg_replace('/:\d+$/', '', $host);
 $server_name = $_SERVER['SERVER_NAME'];     // *.xxx.com
 $redirect_url = '';
 $sub_domain = explode('.', $host)[0];
