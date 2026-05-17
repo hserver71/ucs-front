@@ -73,7 +73,8 @@ if(!is_empty(apcu_fetch('data')) && !is_empty(apcu_fetch('meta_data'))){
         }
     }
     // xxxxxxxxx1235x.ip2long(lb_ip).cf1.com
-    $redirect_url = 'http://' . $sub_domain . '.' .  ip2long($client_data['lb_domains'][$master_domain]) . "." . $pair_domain . $_SERVER['REQUEST_URI'];
+    // $redirect_url = 'http://' . $sub_domain . '.' .  ip2long($client_data['lb_domains'][$master_domain]) . "." . $pair_domain . $_SERVER['REQUEST_URI'];
+    $redirect_url = 'http://' . ip2long($client_data['lb_domains'][$master_domain]) . "." . $pair_domain . $_SERVER['REQUEST_URI'];
 }else{
     $redirect_url = 'https://www.google.com';
     exit;
