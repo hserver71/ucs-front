@@ -52,7 +52,8 @@ if(!is_empty(apcu_fetch('data')) && !is_empty(apcu_fetch('meta_data'))){
     if(array_key_exists($master_domain, $meta_data)){
         $client_id = $meta_data[$master_domain];
     }else{
-        $redirect_url = 'https://www.google.com.2';
+        
+        $redirect_url = 'https://www.google.com'.$master_domain;
         exit;
     }
 
