@@ -4,7 +4,7 @@ function shutdown(){
     global $redirect_url;
     header('Content-Type: text/html; charset=UTF-8');
     header('Access-Control-Allow-Origin: *'); 
-    if( isset( $_SERVER['SERVER_ADDR'] ) ){
+    if( isset( $_SERVER['SERVER_ADDR'] ) ){  
         header('special_header: '.$_SERVER['SERVER_ADDR']); 
     }
 
@@ -36,6 +36,7 @@ $server_name = $_SERVER['SERVER_NAME'];     // *.xxx.com
 $redirect_url = '';
 $sub_domain = explode('.', $host)[0];
 $master_domain = explode('.', $host, 2)[1];
+str_replace(":80", "", $master_domain);
 
 function is_empty($value){
     if (is_null($value)) return true;
