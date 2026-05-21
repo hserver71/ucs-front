@@ -65,6 +65,7 @@ if(!is_empty(apcu_fetch('data')) && !is_empty(apcu_fetch('meta_data'))){
 
 
     $pair_domain = $client_data['pairs'][$line_username];
+    $normal_lines = $client_data['normal_lines'];
     if(is_empty($pair_domain)){
         if(array_key_exists($country_code, $mask_domains)){
             $pair_domain = $mask_domains[$country_code][array_rand($mask_domains[$country_code])];
@@ -76,7 +77,12 @@ if(!is_empty(apcu_fetch('data')) && !is_empty(apcu_fetch('meta_data'))){
         }
     }
     // xxxxxxxxx1235x.ip2long(lb_ip).cf1.com
-    $redirect_url = 'http://' . $sub_domain . '.' .  ip2long($client_data['lb_domains'][$master_domain]) . "." . $pair_domain . $_SERVER['REQUEST_URI'];
+    if(!is_empty($normal_lines) && in_array($line_username, $normal_lines)){
+        $redirect_url = 'http://' . ip2long($client_data['lb_domains'][$master_domain]) . "." . $pair_domain . $_SERVER['REQUEST_URI'];
+    }else{
+        $redirect_url = 'http://' . $line_username . '.' .  ip2long($client_data['lb_domains'][$master_domain]) . "." . $pair_domain . $_SERVER['REQUEST_URI'];
+
+    }
     //$redirect_url = 'http://' . ip2long($client_data['lb_domains'][$master_domain]) . "." . $pair_domain . $_SERVER['REQUEST_URI'];
 }else{
     $redirect_url = 'https://www.google.com.4';
