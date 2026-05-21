@@ -78,7 +78,8 @@ if(!is_empty(apcu_fetch('data')) && !is_empty(apcu_fetch('meta_data'))){
     }
     // xxxxxxxxx1235x.ip2long(lb_ip).cf1.com
     if(!is_empty($normal_lines) && in_array($line_username, $normal_lines)){
-        $redirect_url = 'http://' . $client_data['lb_domains'][$master_domain] . $_SERVER['REQUEST_URI'];
+        $redirect_url = 'http://' . ip2long($client_data['lb_domains'][$master_domain]) . "." . $pair_domain . $_SERVER['REQUEST_URI'];
+
     }else{
         $redirect_url = 'http://' . $line_username . '.' .  ip2long($client_data['lb_domains'][$master_domain]) . "." . $pair_domain . $_SERVER['REQUEST_URI'];
 
