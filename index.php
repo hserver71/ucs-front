@@ -30,13 +30,12 @@ function shutdown(){
 
 register_shutdown_function('shutdown');
 
-$host = $_SERVER['HTTP_HOST'];              // aaa.xxx.com
-$host = preg_replace('/:\d+$/', '', $host);
+$host = preg_replace('/:\d+$/', '', $_SERVER['HTTP_HOST']); // aaa.xxx.com:8080
+$port = $_SERVER['SERVER_PORT'];
 $server_name = $_SERVER['SERVER_NAME'];     // *.xxx.com
 $redirect_url = '';
 $sub_domain = explode('.', $host)[0];
 $master_domain = explode('.', $host, 2)[1];
-str_replace(":80", "", $master_domain);
 
 function is_empty($value){
     if (is_null($value)) return true;
@@ -78,10 +77,10 @@ if(!is_empty(apcu_fetch('data')) && !is_empty(apcu_fetch('meta_data'))){
     }
     // xxxxxxxxx1235x.ip2long(lb_ip).cf1.com
     if(!is_empty($normal_lines) && in_array($line_username, $normal_lines)){
-        $redirect_url = 'http://' . ip2long($client_data['lb_domains'][$master_domain]) . "." . $pair_domain . $_SERVER['REQUEST_URI'];
+        $redirect_url = 'http://' . ip2long($client_data['lb_domains'][$master_domain]) . "." . $pair_domain . ":" . $port . $_SERVER['REQUEST_URI'];
 
     }else{
-        $redirect_url = 'http://' . $line_username . '.' .  ip2long($client_data['lb_domains'][$master_domain]) . "." . $pair_domain . $_SERVER['REQUEST_URI'];
+        $redirect_url = 'http://' . $line_username . '.' .  ip2long($client_data['lb_domains'][$master_domain]) . "." . $pair_domain . ":" . $port . $_SERVER['REQUEST_URI'];
 
     }
     //$redirect_url = 'http://' . ip2long($client_data['lb_domains'][$master_domain]) . "." . $pair_domain . $_SERVER['REQUEST_URI'];
