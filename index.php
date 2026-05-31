@@ -59,12 +59,15 @@ if(!is_empty(apcu_fetch('data')) && !is_empty(apcu_fetch('meta_data'))){
     }
 
     $client_data = apcu_fetch('data')[$client_id];
-    $line_username = decrypt_subdomain($sub_domain);
+    $line_username = strtolower(decrypt_subdomain($sub_domain));
     $mask_domains = apcu_fetch('mask_domains');
 
 
     $pair_domain = $client_data['pairs'][$line_username];
     $normal_lines = $client_data['normal_lines'];
+    if (is_array($normal_lines)) {
+        $normal_lines = array_map('strtolower', $normal_lines);
+    }
     if(is_empty($pair_domain)){
         if(array_key_exists($country_code, $mask_domains)){
             $pair_domain = $mask_domains[$country_code][array_rand($mask_domains[$country_code])];
