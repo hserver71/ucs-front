@@ -11,15 +11,28 @@ function shutdown(){
     if(!is_empty($redirect_url)){
         $redirect_url = utf8_decode($redirect_url);
         header("Location: " . $redirect_url, true, 302);
-    }else{
+      }else{
         header("Location: https://www.google.com.1", true, 302);
     }
 }
 
- function decrypt_subdomain($sub_domain){
+ function decrypt_subdomain($sub_domain, $panel_type){
     try {
-        if(strlen($sub_domain) >= 14){
-            return strval(intval(substr($sub_domain, 9, -1)) - 1234);
+        $panel_type = (int) $panel_type;
+        if($panel_type === 1){
+            if(strlen($sub_domain) >= 14){
+                return strval(intval(substr($sub_domain, 9, -1)) - 1234);
+            }else{
+                return $sub_domain;
+            }
+        }else if($panel_type === 2){
+            if (preg_match('/^[um]+[0-9a-f]+$/i', $sub_domain)) {
+                return strval(hexdec(ltrim($sub_domain, 'um')));
+            }
+            if (ctype_digit($sub_domain)) {
+                return $sub_domain;
+            }
+            return 'stranger';
         }else{
             return $sub_domain;
         }
@@ -59,18 +72,27 @@ if(!is_empty(apcu_fetch('data')) && !is_empty(apcu_fetch('meta_data'))){
     }
 
     $client_data = apcu_fetch('data')[$client_id];
-    $line_username = strtolower(decrypt_subdomain($sub_domain));
+    $panel_type = intval($client_data['panel_type']);
+    $max_id = intval($client_data['max_uid']);
+    $min_id = intval($client_data['min_uid']);
+    $uid = strtolower(decrypt_subdomain($sub_domain, $panel_type));
     $mask_domains = apcu_fetch('mask_domains');
-
-
-    $pair_domain = $client_data['pairs'][$line_username];
     $normal_lines = $client_data['normal_lines'];
-    if (is_array($normal_lines)) {
-        $normal_lines = array_map('strtolower', $normal_lines);
+
+    if($panel_type === 2){
+        $pair_domain = $client_data['pairs'][$sub_domain];
+    }else{
+        $pair_domain = $client_data['pairs'][$uid];
     }
+    
+    // country code check, and choose the proper cf domain
     if(is_empty($pair_domain)){
         if(array_key_exists($country_code, $mask_domains)){
-            $pair_domain = $mask_domains[$country_code][array_rand($mask_domains[$country_code])];
+            $available_domains = $mask_domains[$country_code];
+            $count = floatval(count($available_domains)) ;
+            $index = (int) floor(($uid - $min_id) / (($max_id - $min_id + 1) / $count));
+            $index = max(0, min($count - 1, $index));
+            $pair_domain = $available_domains[$index];
         }else if(array_key_exists('fallback', $mask_domains)){
             $pair_domain = $mask_domains['fallback'][array_rand($mask_domains['fallback'])];
         }else{
@@ -78,13 +100,21 @@ if(!is_empty(apcu_fetch('data')) && !is_empty(apcu_fetch('meta_data'))){
             exit;
         }
     }
-    // xxxxxxxxx1235x.ip2long(lb_ip).cf1.com
-    if(!is_empty($normal_lines) && in_array($line_username, $normal_lines)){
-        $redirect_url = 'http://' . ip2long($client_data['lb_domains'][$master_domain]) . "." . $pair_domain . ":" . $port . $_SERVER['REQUEST_URI'];
 
+    // ensure if we keep node count as 3 or 4 on both modes
+    if($panel_type === 2){
+        if(!is_empty($normal_lines) && in_array($sub_domain, $normal_lines)){
+            $redirect_url = 'http://' . ip2long($client_data['lb_domains'][$master_domain]) . "." . $pair_domain . ":" . $port . $_SERVER['REQUEST_URI'];
+        }else{
+            $redirect_url = 'http://' . $uid . '.' .  ip2long($client_data['lb_domains'][$master_domain]) . "." . $pair_domain . ":" . $port . $_SERVER['REQUEST_URI'];
+        }
     }else{
-        $redirect_url = 'http://' . $line_username . '.' .  ip2long($client_data['lb_domains'][$master_domain]) . "." . $pair_domain . ":" . $port . $_SERVER['REQUEST_URI'];
-
+        if(!is_empty($normal_lines) && in_array($uid, $normal_lines)){
+            $redirect_url = 'http://' . ip2long($client_data['lb_domains'][$master_domain]) . "." . $pair_domain . ":" . $port . $_SERVER['REQUEST_URI'];
+        }else{
+            $redirect_url = 'http://' . $uid . '.' .  ip2long($client_data['lb_domains'][$master_domain]) . "." . $pair_domain . ":" . $port . $_SERVER['REQUEST_URI'];
+        }
+        
     }
     //$redirect_url = 'http://' . ip2long($client_data['lb_domains'][$master_domain]) . "." . $pair_domain . $_SERVER['REQUEST_URI'];
 }else{
