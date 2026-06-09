@@ -91,7 +91,7 @@ if(!is_empty(apcu_fetch('data')) && !is_empty(apcu_fetch('meta_data'))){
         $pair_domain = $client_data['pairs'][$uid];
     }
 
-    if ($isDedicated) {
+    if ($isDedicated && is_empty($pair_domain)) {
         $cfList = $dedicated_domains[$master_key];
 
         $pair_domain = $cfList[array_rand($cfList)];
