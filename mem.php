@@ -22,6 +22,7 @@ if($action == "start"){
         apcu_delete('data');
         apcu_store('data', $data['pairs']);
         apcu_store('mask_domains', $data['mask_domains']);
+        apcu_store('dedicated_domains', $data['dedicated_domains'] ?? []);
 
         $meta_data = [];
 
@@ -43,11 +44,13 @@ if($action == "start"){
     echo "Meta data: " . json_encode(apcu_fetch('meta_data')) . "\n\n";
     echo "Data: " . json_encode(apcu_fetch('data')) . "\n";
     echo "Mask domains: " . json_encode(apcu_fetch('mask_domains')) . "\n";
+    echo "Dedicated domains: " . json_encode(apcu_fetch('dedicated_domains')) . "\n";
 }else if($action == "clear"){
     apcu_delete('data');
     apcu_delete('meta_data');
     apcu_delete('last_updated');
     apcu_delete('mask_domains');
+    apcu_delete('dedicated_domains');
     echo "Cache cleared successfully!";
 }else{
     echo "Invalid action";

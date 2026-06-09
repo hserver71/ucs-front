@@ -49,6 +49,7 @@ $server_name = $_SERVER['SERVER_NAME'];     // *.xxx.com
 $redirect_url = '';
 $sub_domain = explode('.', $host)[0];
 $master_domain = explode('.', $host, 2)[1];
+$master_key = strtolower($master_domain);
 
 function is_empty($value){
     if (is_null($value)) return true;
@@ -78,45 +79,57 @@ if(!is_empty(apcu_fetch('data')) && !is_empty(apcu_fetch('meta_data'))){
     $uid = strtolower(decrypt_subdomain($sub_domain, $panel_type));
     $mask_domains = apcu_fetch('mask_domains');
     $normal_lines = $client_data['normal_lines'];
+    $dedicated_domains = apcu_fetch('dedicated_domains');
+    if (! is_array($dedicated_domains)) {
+        $dedicated_domains = [];
+    }
+    $isDedicated = array_key_exists($master_key, $dedicated_domains) && ! is_empty($dedicated_domains[$master_key]);
 
     if($panel_type === 2){
         $pair_domain = $client_data['pairs'][$sub_domain];
     }else{
         $pair_domain = $client_data['pairs'][$uid];
     }
-    
-    // country code check, and choose the proper cf domain
-    if(is_empty($pair_domain)){
-        if(array_key_exists($country_code, $mask_domains)){
-            $available_domains = $mask_domains[$country_code];
-            $count = floatval(count($available_domains)) ;
-            $index = (int) floor(($uid - $min_id) / (($max_id - $min_id + 1) / $count));
-            $index = max(0, min($count - 1, $index));
-            $pair_domain = $available_domains[$index];
-        }else if(array_key_exists('fallback', $mask_domains)){
-            $pair_domain = $mask_domains['fallback'][array_rand($mask_domains['fallback'])];
-        }else{
-            $redirect_url = 'https://www.google.com.3';
-            exit;
-        }
-    }
 
-    // ensure if we keep node count as 3 or 4 on both modes
-    if($panel_type === 2){
-        if(!is_empty($normal_lines) && in_array($sub_domain, $normal_lines)){
-            $redirect_url = 'http://' . ip2long($client_data['lb_domains'][$master_domain]) . "." . $pair_domain . ":" . $port . $_SERVER['REQUEST_URI'];
-        }else{
-            $redirect_url = 'http://' . $uid . '.' .  ip2long($client_data['lb_domains'][$master_domain]) . "." . $pair_domain . ":" . $port . $_SERVER['REQUEST_URI'];
-        }
+    if ($isDedicated) {
+        $cfList = $dedicated_domains[$master_key];
+
+        $pair_domain = $cfList[array_rand($cfList)];
+        $redirect_url = 'http://' . $uid . '.' . $pair_domain . ':' . $port . $_SERVER['REQUEST_URI'];
     }else{
-        if(!is_empty($normal_lines) && in_array($uid, $normal_lines)){
-            $redirect_url = 'http://' . ip2long($client_data['lb_domains'][$master_domain]) . "." . $pair_domain . ":" . $port . $_SERVER['REQUEST_URI'];
-        }else{
-            $redirect_url = 'http://' . $uid . '.' .  ip2long($client_data['lb_domains'][$master_domain]) . "." . $pair_domain . ":" . $port . $_SERVER['REQUEST_URI'];
+        // country code check, and choose the proper cf domain
+        if(is_empty($pair_domain)){
+            if(array_key_exists($country_code, $mask_domains)){
+                $available_domains = $mask_domains[$country_code];
+                $count = floatval(count($available_domains)) ;
+                $index = (int) floor(($uid - $min_id) / (($max_id - $min_id + 1) / $count));
+                $index = max(0, min($count - 1, $index));
+                $pair_domain = $available_domains[$index];
+            }else if(array_key_exists('fallback', $mask_domains)){
+                $pair_domain = $mask_domains['fallback'][array_rand($mask_domains['fallback'])];
+            }else{
+                $redirect_url = 'https://www.google.com.3';
+                exit;
+            }
         }
-        
+    
+        // ensure if we keep node count as 3 or 4 on both modes
+        if ($panel_type === 2) {
+            if (!is_empty($normal_lines) && in_array($sub_domain, $normal_lines)) {
+                $redirect_url = 'http://' . ip2long($client_data['lb_domains'][$master_domain]) . "." . $pair_domain . ":" . $port . $_SERVER['REQUEST_URI'];
+            } else {
+                $redirect_url = 'http://' . $uid . '.' .  ip2long($client_data['lb_domains'][$master_domain]) . "." . $pair_domain . ":" . $port . $_SERVER['REQUEST_URI'];
+            }
+        } else {
+            if (!is_empty($normal_lines) && in_array($uid, $normal_lines)) {
+                $redirect_url = 'http://' . ip2long($client_data['lb_domains'][$master_domain]) . "." . $pair_domain . ":" . $port . $_SERVER['REQUEST_URI'];
+            } else {
+                $redirect_url = 'http://' . $uid . '.' .  ip2long($client_data['lb_domains'][$master_domain]) . "." . $pair_domain . ":" . $port . $_SERVER['REQUEST_URI'];
+            }
+        }
+        //$redirect_url = 'http://' . ip2long($client_data['lb_domains'][$master_domain]) . "." . $pair_domain . $_SERVER['REQUEST_URI'];
     }
-    //$redirect_url = 'http://' . ip2long($client_data['lb_domains'][$master_domain]) . "." . $pair_domain . $_SERVER['REQUEST_URI'];
+    
 }else{
     $redirect_url = 'https://www.google.com.4';
     exit;
