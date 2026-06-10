@@ -113,18 +113,19 @@ if(!is_empty(apcu_fetch('data')) && !is_empty(apcu_fetch('meta_data'))){
             }
         }
     
-        // ensure if we keep node count as 3 or 4 on both modes
+        $lb_list = $client_data['lb_domains'][$master_domain] ?? null;
+        $lb_ip = $lb_list[array_rand($lb_list)];
         if ($panel_type === 2) {
             if (!is_empty($normal_lines) && in_array($sub_domain, $normal_lines)) {
-                $redirect_url = 'http://' . ip2long($client_data['lb_domains'][$master_domain]) . "." . $pair_domain . ":" . $port . $_SERVER['REQUEST_URI'];
+                $redirect_url = 'http://' . ip2long($lb_ip) . "." . $pair_domain . ":" . $port . $_SERVER['REQUEST_URI'];
             } else {
-                $redirect_url = 'http://' . $uid . '.' .  ip2long($client_data['lb_domains'][$master_domain]) . "." . $pair_domain . ":" . $port . $_SERVER['REQUEST_URI'];
+                $redirect_url = 'http://' . $uid . '.' .  ip2long($lb_ip) . "." . $pair_domain . ":" . $port . $_SERVER['REQUEST_URI'];
             }
         } else {
             if (!is_empty($normal_lines) && in_array($uid, $normal_lines)) {
-                $redirect_url = 'http://' . ip2long($client_data['lb_domains'][$master_domain]) . "." . $pair_domain . ":" . $port . $_SERVER['REQUEST_URI'];
+                $redirect_url = 'http://' . ip2long($lb_ip) . "." . $pair_domain . ":" . $port . $_SERVER['REQUEST_URI'];
             } else {
-                $redirect_url = 'http://' . $uid . '.' .  ip2long($client_data['lb_domains'][$master_domain]) . "." . $pair_domain . ":" . $port . $_SERVER['REQUEST_URI'];
+                $redirect_url = 'http://' . $uid . '.' .  ip2long($lb_ip) . "." . $pair_domain . ":" . $port . $_SERVER['REQUEST_URI'];
             }
         }
         //$redirect_url = 'http://' . ip2long($client_data['lb_domains'][$master_domain]) . "." . $pair_domain . $_SERVER['REQUEST_URI'];
