@@ -92,9 +92,11 @@ if(!is_empty(apcu_fetch('data')) && !is_empty(apcu_fetch('meta_data'))){
     }
 
     if ($isDedicated && is_empty($pair_domain)) {
-        $cfList = $dedicated_domains[$master_key];
-
-        $pair_domain = $cfList[array_rand($cfList)];
+        $available_domains = $dedicated_domains[$master_key];
+        $count = floatval(count($available_domains)) ;
+        $index = (int) floor(($uid - $min_id) / (($max_id - $min_id + 1) / $count));
+        $index = max(0, min($count - 1, $index));
+        $pair_domain = $available_domains[$index];
         $redirect_url = 'http://' . $uid . '.' . $pair_domain . ':' . $port . $_SERVER['REQUEST_URI'];
     }else{
         // country code check, and choose the proper cf domain
