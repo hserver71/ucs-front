@@ -86,11 +86,11 @@ if(!is_empty(apcu_fetch('data')) && !is_empty(apcu_fetch('meta_data'))){
     $isDedicated = array_key_exists($master_key, $dedicated_domains) && ! is_empty($dedicated_domains[$master_key]);
 
     if($panel_type === 2){
-        $pair_domain = $client_data['pairs'][$sub_domain];
+        $pair_domain = array_key_exists($sub_domain, $client_data['pairs'])?$client_data['pairs'][$sub_domain]:null;
     }else{
-        $pair_domain = $client_data['pairs'][$uid];
+        $pair_domain = array_key_exists($uid, $client_data['pairs'])?$client_data['pairs'][$uid]:null;
     }
-
+    
     if ($isDedicated && is_empty($pair_domain)) {
         $available_domains = $dedicated_domains[$master_key];
         $count = floatval(count($available_domains)) ;
