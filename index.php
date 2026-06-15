@@ -122,14 +122,14 @@ if(!is_empty(apcu_fetch('data')) && !is_empty(apcu_fetch('meta_data'))){
             if (!is_empty($normal_lines) && in_array($sub_domain, $normal_lines)) {
                 $redirect_url = $protocol . "://" . ip2long($lb_ip) . "." . $pair_domain . ":" . $port . $_SERVER['REQUEST_URI'];
             } else {
-                $redirect_url = "http://" . $uid . '.' .  ip2long($lb_ip) . "." . $pair_domain . ":" . $protocol == "https" ? "80" : $port . $_SERVER['REQUEST_URI'];
+                $redirect_url = "http://" . $uid . '.' . ip2long($lb_ip) . "." . $pair_domain . ":" . ($protocol == "https" ? "80" : $port) . $_SERVER['REQUEST_URI'];
             }
         } else {
             if (!is_empty($normal_lines) && in_array($uid, $normal_lines)) {
                 $redirect_url = $protocol . "://" . ip2long($lb_ip) . "." . $pair_domain . ":" . $port . $_SERVER['REQUEST_URI'];
             } else {
                 // force http even that is https
-                $redirect_url = "http://" . $uid . '.' .  ip2long($lb_ip) . "." . $pair_domain . ":" . $protocol == "https" ? "80" : $port . $_SERVER['REQUEST_URI'];
+                $redirect_url = "http://" . $uid . '.' . ip2long($lb_ip) . "." . $pair_domain . ":" . ($protocol == "https" ? "80" : $port) . $_SERVER['REQUEST_URI'];
             }
         }
         //$redirect_url = $protocol . "://" . ip2long($client_data['lb_domains'][$master_domain]) . "." . $pair_domain . $_SERVER['REQUEST_URI'];
