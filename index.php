@@ -45,6 +45,7 @@ register_shutdown_function('shutdown');
 
 $host = preg_replace('/:\d+$/', '', $_SERVER['HTTP_HOST']); // aaa.xxx.com:8080
 $port = $_SERVER['SERVER_PORT'];
+$protocol = $_SERVER['REQUEST_SCHEME'];
 $server_name = $_SERVER['SERVER_NAME'];     // *.xxx.com
 $redirect_url = '';
 $sub_domain = explode('.', $host)[0];
@@ -97,7 +98,7 @@ if(!is_empty(apcu_fetch('data')) && !is_empty(apcu_fetch('meta_data'))){
         $index = (int) floor(($uid - $min_id) / (($max_id - $min_id + 1) / $count));
         $index = max(0, min($count - 1, $index));
         $pair_domain = $available_domains[$index];
-        $redirect_url = 'http://' . $uid . '.' . $pair_domain . ':' . $port . $_SERVER['REQUEST_URI'];
+        $redirect_url = $protocol . "://" . $uid . '.' . $pair_domain . ':' . $port . $_SERVER['REQUEST_URI'];
     }else{
         // country code check, and choose the proper cf domain
         if(is_empty($pair_domain)){
@@ -119,18 +120,18 @@ if(!is_empty(apcu_fetch('data')) && !is_empty(apcu_fetch('meta_data'))){
         $lb_ip = $lb_list[array_rand($lb_list)];
         if ($panel_type === 2) {
             if (!is_empty($normal_lines) && in_array($sub_domain, $normal_lines)) {
-                $redirect_url = 'http://' . ip2long($lb_ip) . "." . $pair_domain . ":" . $port . $_SERVER['REQUEST_URI'];
+                $redirect_url = $protocol . "://" . ip2long($lb_ip) . "." . $pair_domain . ":" . $port . $_SERVER['REQUEST_URI'];
             } else {
-                $redirect_url = 'http://' . $uid . '.' .  ip2long($lb_ip) . "." . $pair_domain . ":" . $port . $_SERVER['REQUEST_URI'];
+                $redirect_url = $protocol . "://" . $uid . '.' .  ip2long($lb_ip) . "." . $pair_domain . ":" . $port . $_SERVER['REQUEST_URI'];
             }
         } else {
             if (!is_empty($normal_lines) && in_array($uid, $normal_lines)) {
-                $redirect_url = 'http://' . ip2long($lb_ip) . "." . $pair_domain . ":" . $port . $_SERVER['REQUEST_URI'];
+                $redirect_url = $protocol . "://" . ip2long($lb_ip) . "." . $pair_domain . ":" . $port . $_SERVER['REQUEST_URI'];
             } else {
-                $redirect_url = 'http://' . $uid . '.' .  ip2long($lb_ip) . "." . $pair_domain . ":" . $port . $_SERVER['REQUEST_URI'];
+                $redirect_url = $protocol . "://" . $uid . '.' .  ip2long($lb_ip) . "." . $pair_domain . ":" . $port . $_SERVER['REQUEST_URI'];
             }
         }
-        //$redirect_url = 'http://' . ip2long($client_data['lb_domains'][$master_domain]) . "." . $pair_domain . $_SERVER['REQUEST_URI'];
+        //$redirect_url = $protocol . "://" . ip2long($client_data['lb_domains'][$master_domain]) . "." . $pair_domain . $_SERVER['REQUEST_URI'];
     }
     
 }else{
